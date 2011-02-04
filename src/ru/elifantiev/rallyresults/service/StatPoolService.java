@@ -179,8 +179,6 @@ public class StatPoolService extends Service {
             isUploading.set(false);
             lockHolder.release();
             stopForeground(true);
-            if(!hasClients)
-                stopSelf();
             if (listener != null && rallySection != null) {
                 listener.onStatRefresh(rallySection);
             }

@@ -3,6 +3,7 @@ package ru.elifantiev.rallyresults;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.*;
+import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -43,6 +44,7 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
 
     @Override
     protected void onStart() {
+        startService(new Intent(this, StatPoolService.class));
         bindService(
                 new Intent(InputActivity.this, StatPoolService.class),
                 InputActivity.this,
@@ -50,11 +52,11 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
         super.onStart();    //To change body of overridden methods use File | Settings | File Templates.
     }
 
-    @Override
+    /*@Override
     protected void onPause() {
         unbindService(this);
         super.onPause();
-    }
+    }*/
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -103,32 +105,63 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
 
         findViewById(R.id.sendResult).setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
+                boolean isError;
                 StatRecord rec = new StatRecord(
                         (String) spnNumber.getSelectedItem(),
                         competitionId,
                         sectionId);
-                try {
-                    rec.setStart(
-                            txtStartHour.getText().toString(),
-                            txtStartMinute.getText().toString(),
-                            txtStartSecond.getText().toString());
-                    rec.setFinish(
-                            txtFinishHour.getText().toString(),
-                            txtFinishMinute.getText().toString(),
-                            txtFinishSecond.getText().toString(),
-                            txtFinishMSecond.getText().toString());
 
-                    boundService.uploadStatRecord(rec);
-                } catch (StatRecord.ParseException e) {
-                    Log.d("InputActivity", "Format parse: " + e.getMessage());
+                isError = checkField(txtStartHour, 24);
+                isError |= checkField(txtStartMinute, 60);
+                isError |= checkField(txtStartSecond, 60);
+
+                isError |= checkField(txtFinishHour, 24);
+                isError |= checkField(txtFinishMinute, 60);
+                isError |= checkField(txtFinishSecond, 60);
+
+                if (!isError) {
+                    try {
+                        rec.setStart(
+                                txtStartHour.getText().toString(),
+                                txtStartMinute.getText().toString(),
+                                txtStartSecond.getText().toString());
+                        rec.setFinish(
+                                txtFinishHour.getText().toString(),
+                                txtFinishMinute.getText().toString(),
+                                txtFinishSecond.getText().toString(),
+                                txtFinishMSecond.getText().toString());
+
+                        boundService.uploadStatRecord(rec);
+                    } catch (StatRecord.ParseException e) {
+                        Log.d("InputActivity", "Format parse: " + e.getMessage());
+                    }
+                    clearInputs();
                 }
-                clearInputs();
             }
         });
 
         new AsyncLoadSection().execute();
+    }
 
-        startService(new Intent(this, StatPoolService.class));
+    private boolean checkField(TextView control, int maxVal) {
+        int value = 0;
+        boolean isError = true;
+        try {
+            value = new Integer(control.getText().toString());
+            isError = value > maxVal;
+        } catch (NumberFormatException e) {
+            // ignore
+        }
+        markError(control, isError);
+        return isError;
+    }
+
+    private void markError(View control, boolean error) {
+        if (error)
+            control.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
+        else
+            control.getBackground().setColorFilter(null);
+        control.invalidate();
     }
 
     private void clearInputs() {
