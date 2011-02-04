@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+        <TextView
+                android:id="@+id/carNumberCation"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/carNumber"/>
+
+        <Spinner
+            android:id="@+id/spnNumber"
+            android:layout_below="@id/carNumberCation"
+            android:layout_height="wrap_content"
+            android:layout_width="100dp" />
+
+        <TextView
+                android:id="@+id/startTimeCation"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/spnNumber"
+                android:text="@string/startTime"/>
+
+        <EditText
+                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:inputType="phone"
+                android:digits="0123456789"
+                android:maxLength="2"
+                android:singleLine="true"
+                android:id="@+id/startHour"
+                android:layout_below="@id/startTimeCation"/>
+
+        <TextView
+                android:id="@+id/colon1"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text=":"
+                android:layout_alignBaseline="@id/startHour"
+                android:layout_toRightOf="@id/startHour"
+                android:layout_below="@id/startTimeCation"/>
+
+        <EditText
+                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:inputType="phone"
+                android:digits="0123456789"
+                android:maxLength="2"
+                android:singleLine="true"
+                android:id="@+id/startMinute"
+                android:layout_below="@id/startTimeCation"
+                android:layout_toRightOf="@id/colon1"/>
+
+        <TextView
+                android:id="@+id/colon2"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text=":"
+                android:layout_alignBaseline="@id/startHour"
+                android:layout_toRightOf="@id/startMinute"
+                android:layout_below="@id/startTimeCation"/>
+
+        <EditText
+                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:inputType="phone"
+                android:digits="0123456789"
+                android:maxLength="2"
+                android:id="@+id/startSecond"
+                android:singleLine="true"
+                android:layout_below="@id/startTimeCation"
+                android:layout_toRightOf="@id/colon2"/>
+
+        <!-- =============================================== -->
+
+        <TextView
+                android:id="@+id/finishTimeCation"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/startHour"
+                android:text="@string/finishTime"/>
+
+        <!-- =============================================== -->
+
+        <EditText
+                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:inputType="phone"
+                android:digits="0123456789"
+                android:maxLength="2"
+                android:singleLine="true"
+                android:id="@+id/finishHour"
+                android:layout_below="@id/finishTimeCation"/>
+
+        <TextView
+                android:id="@+id/colon3"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text=":"
+                android:layout_alignBaseline="@id/finishHour"
+                android:layout_toRightOf="@id/finishHour"
+                android:layout_below="@id/finishTimeCation"/>
+
+
+        <EditText
+                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:inputType="phone"
+                android:digits="0123456789"
+                android:maxLength="2"
+                android:singleLine="true"
+                android:id="@+id/finishMinute"
+                android:layout_below="@id/finishTimeCation"
+                android:layout_toRightOf="@id/colon3"/>
+
+        <TextView
+                android:id="@+id/colon4"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text=":"
+                android:layout_alignBaseline="@id/finishHour"
+                android:layout_toRightOf="@id/finishMinute"
+                android:layout_below="@id/finishTimeCation"/>
+
+        <EditText
+                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:inputType="phone"
+                android:digits="0123456789"
+                android:maxLength="2"
+                android:singleLine="true"
+                android:id="@+id/finishSecond"
+                android:layout_below="@id/finishTimeCation"
+                android:layout_toRightOf="@id/colon4"/>
+
+        <TextView
+                android:id="@+id/colon5"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="."
+                android:layout_alignBaseline="@id/finishHour"
+                android:layout_toRightOf="@id/finishSecond"
+                android:layout_below="@id/finishTimeCation"/>
+
+        <EditText
+                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:inputType="phone"
+                android:digits="0123456789"
+                android:maxLength="1"
+                android:singleLine="true"
+                android:id="@+id/finishMillisecond"
+                android:layout_below="@id/finishTimeCation"
+                android:layout_toRightOf="@id/colon5"/>
+
+        <Button
+                android:text="@string/send"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/finishHour"
+                android:id="@+id/sendResult"/>
+
+        <Button
+            android:id="@+id/btnEdit"
+            android:layout_below="@id/sendResult"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit" />
+
+        <Spinner
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:layout_below="@id/sendResult"
+            android:layout_toLeftOf="@id/btnEdit"
+            android:id="@+id/spnItemToEdit" />
+
+    </RelativeLayout>
+</ScrollView>

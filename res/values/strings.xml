@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RallyResults</string>
+    <string name="Login">Your login</string>
+    <string name="Password">Password</string>
+    <string name="doLogin">Login</string>
+    <string name="accessibleCompetitions">Accessible competitions</string>
+    <string name="accessibleSections">Accessible sections</string>
+    <string name="selectSection">Select section</string>
+    <string name="select">Select</string>
+    <string name="next">Next...</string>
+    <string name="loggingIn">Logging in...</string>
+    <string name="loadingCompetitions">Loading competitions...</string>
+    <string name="loadingSections">Loading sections...</string>
+    <string name="loadingSection">Loading section information...</string>
+    <string name="loading">Loading...</string>
+    <string name="loginFailed">Login failed</string>
+    <string name="wsRootUrl">http://rally.elifantiev.ru/webservice/</string>
+    <string name="carNumber">Car number:</string>
+    <string name="startTime">Start time:</string>
+    <string name="finishTime">Finish time:</string>
+    <string name="send">Send</string>
+    <string name="showResTable">Show results</string>
+</resources>
