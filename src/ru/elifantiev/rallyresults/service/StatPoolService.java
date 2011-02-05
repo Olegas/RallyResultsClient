@@ -103,7 +103,7 @@ public class StatPoolService extends Service {
 
         if (timer == null) {
             timer = new Timer();
-            timer.scheduleAtFixedRate(uploadTask, 0, 60000);
+            timer.scheduleAtFixedRate(uploadTask, 0, 15000);
         }
 
         if (statQueue == null)
