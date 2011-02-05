@@ -70,11 +70,8 @@ public class StatPoolService extends Service {
     private StatRecord getNextRecord() {
         StatRecord retval = null;
         synchronized (lock) {
-            if (statQueue.size() > 0) {
+            if (statQueue.size() > 0)
                 retval = statQueue.pop();
-                if (statQueue.size() > 0)
-                    startForeground(notifyId, getNotification());
-            }
         }
         return retval;
     }
@@ -84,12 +81,6 @@ public class StatPoolService extends Service {
             statQueue.push(record);
             startForeground(notifyId, getNotification());
             lockHolder.acquire();
-        }
-    }
-
-    public int getQueueStatus() {
-        synchronized (lock) {
-            return statQueue.size();
         }
     }
 
@@ -178,7 +169,10 @@ public class StatPoolService extends Service {
         protected void onPostExecute(RallySection rallySection) {
             isUploading.set(false);
             lockHolder.release();
-            stopForeground(true);
+            if (statQueue.size() > 0)
+                startForeground(notifyId, getNotification());
+            else
+                stopForeground(true);
             if (listener != null && rallySection != null) {
                 listener.onStatRefresh(rallySection);
             }
