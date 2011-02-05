@@ -193,6 +193,10 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
     }
 
     public void onStatRefresh(RallySection rallySection) {
+
+        if(rallySection.getCompetitionId() != competitionId || rallySection.getSectionId() != sectionId)
+            return;
+
         String[] keys = new String[]{"number", "start", "finish"};
         int[] views = new int[]{R.id.statNumber, R.id.statStart, R.id.statFinish};
         List<StatRecord> stats = rallySection.getStats();

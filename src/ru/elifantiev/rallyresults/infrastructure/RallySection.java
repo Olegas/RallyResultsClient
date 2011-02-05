@@ -20,13 +20,23 @@ public class RallySection {
     protected String sectionName = "", competitionName = "";
     protected LinkedList<StatRecord> stats = new LinkedList<StatRecord>();
 
+    public int getSectionId() {
+        return sectionId;
+    }
+
+    public int getCompetitionId() {
+        return competitionId;
+    }
+
+    private int sectionId, competitionId;
+
     public RallySection(Document svcResponse) {
         Node section = svcResponse.getElementsByTagName("section").item(0);
         Node competition = svcResponse.getElementsByTagName("competition").item(0);
         sectionName = section.getFirstChild().getNodeValue();
         competitionName = competition.getFirstChild().getNodeValue();
-        int competitionId = new Integer(competition.getAttributes().getNamedItem("id").getNodeValue());
-        int sectionId = new Integer(section.getAttributes().getNamedItem("id").getNodeValue());
+        competitionId = new Integer(competition.getAttributes().getNamedItem("id").getNodeValue());
+        sectionId = new Integer(section.getAttributes().getNamedItem("id").getNodeValue());
 
 
         NodeList statsNodes = svcResponse.getElementsByTagName("record");
