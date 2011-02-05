@@ -10,6 +10,7 @@ import ru.elifantiev.utils.net.XMLWebService;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class RallyWebService extends XMLWebService {
@@ -51,7 +52,7 @@ public class RallyWebService extends XMLWebService {
 
     public Map<Integer, String> getSections(int competitionId) {
 
-        Map<Integer, String> rv = new HashMap<Integer, String>();
+        Map<Integer, String> rv = new LinkedHashMap<Integer, String>();
         HashMap<String, String> args = new HashMap<String, String>();
         args.put("competition", Integer.toString(competitionId));
 
