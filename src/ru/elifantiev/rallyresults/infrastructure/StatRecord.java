@@ -16,8 +16,8 @@ public class StatRecord extends HashMap<String, String> {
 
     public StatRecord(Node node, int competitionId, int sectionId) throws ParseException {
         NamedNodeMap attrs = node.getAttributes();
-        number = ((Attr)attrs.getNamedItem("number")).getValue();
-        parseStart(((Attr)attrs.getNamedItem("start")).getValue());
+        number = ((Attr) attrs.getNamedItem("number")).getValue();
+        parseStart(((Attr) attrs.getNamedItem("start")).getValue());
         parseFinish(((Attr) attrs.getNamedItem("finish")).getValue());
         this.competitionId = competitionId;
         this.sectionId = sectionId;
@@ -42,7 +42,10 @@ public class StatRecord extends HashMap<String, String> {
     }
 
     public String getStart() {
-        return start;
+        if (start.equals(""))
+            return start;
+        else
+            return start.substring(0, start.indexOf('.'));
     }
 
     public void setStart(String start) throws ParseException {
