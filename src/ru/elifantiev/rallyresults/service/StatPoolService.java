@@ -16,24 +16,26 @@ import ru.elifantiev.rallyresults.infrastructure.RallySection;
 import ru.elifantiev.rallyresults.infrastructure.StatRecord;
 
 import java.io.IOException;
+import java.util.Queue;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StatPoolService extends Service {
 
     private final int notifyId = 1;
-    private boolean hasClients = true;
     private RallyWebService svc = null;
-    private WakeLockHolder lockHolder = null;
-    private Stack<StatRecord> statQueue = null;
+    //private WakeLockHolder lockHolder = null;
+    private BlockingQueue<StatRecord> statQueue = null;
     private final IBinder binder = new StatPoolBinder();
     private OnStatRefreshListener listener = null;
-    private final String lock = "lock", uploadLock = "uploadLock";
-    private AtomicReference<Boolean> isUploading = null;
-    private Timer timer;
-    private final TimerTask uploadTask = new TimerTask() {
+    private UploadingWorker worker;
+    //private AtomicReference<Boolean> isUploading = null;
+    //private Timer timer;
+    /*private final TimerTask uploadTask = new TimerTask() {
         @Override
         public void run() {
             synchronized (uploadLock) {
@@ -45,7 +47,7 @@ public class StatPoolService extends Service {
                 }
             }
         }
-    };
+    };*/
 
     public class StatPoolBinder extends Binder {
         public StatPoolService getService() {
@@ -63,25 +65,12 @@ public class StatPoolService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        hasClients = false;
         return false;
     }
 
-    private StatRecord getNextRecord() {
-        StatRecord retval = null;
-        synchronized (lock) {
-            if (statQueue.size() > 0)
-                retval = statQueue.pop();
-        }
-        return retval;
-    }
-
     public void uploadStatRecord(StatRecord record) {
-        synchronized (lock) {
-            statQueue.push(record);
-            startForeground(notifyId, getNotification());
-            lockHolder.acquire();
-        }
+        statQueue.add(record);
+        startForeground(notifyId, getNotification());
     }
 
     public void setOnStatRefreshListener(OnStatRefreshListener listener) {
@@ -98,19 +87,14 @@ public class StatPoolService extends Service {
                     prefs.getString("password", ""));
         }
 
-        if (lockHolder == null)
+        /*if (lockHolder == null)
             lockHolder = new WakeLockHolder(this);
-
-        if (timer == null) {
-            timer = new Timer();
-            timer.scheduleAtFixedRate(uploadTask, 0, 15000);
-        }
-
+*/
         if (statQueue == null)
-            statQueue = new Stack<StatRecord>();
+            statQueue = new LinkedBlockingQueue<StatRecord>();
 
-        if (isUploading == null)
-            isUploading = new AtomicReference<Boolean>(false);
+        if(worker == null)
+            worker = new UploadingWorker(svc, statQueue);
 
         super.onCreate();
     }
@@ -122,12 +106,11 @@ public class StatPoolService extends Service {
 
     @Override
     public void onDestroy() {
-        lockHolder.release();
-        timer.cancel();
+        worker.cancel();
+        //lockHolder.release();
         statQueue.clear();
         svc = null;
-        lockHolder = null;
-        timer = null;
+        //lockHolder = null;
         statQueue = null;
         if (listener != null)
             listener = null;
@@ -152,7 +135,7 @@ public class StatPoolService extends Service {
         return retval;
     }
 
-    private class UploadTask extends AsyncTask<StatRecord, Void, RallySection> {
+    /*private class UploadTask extends AsyncTask<StatRecord, Void, RallySection> {
 
         @Override
         protected RallySection doInBackground(StatRecord... statRecords) {
@@ -177,5 +160,5 @@ public class StatPoolService extends Service {
                 listener.onStatRefresh(rallySection);
             }
         }
-    }
+    }*/
 }
