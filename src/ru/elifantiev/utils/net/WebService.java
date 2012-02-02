@@ -6,11 +6,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,29 +40,16 @@ public abstract class WebService<R, T> {
     }
 
     protected String load(String method, Map<String, String> args) throws IOException {
-        StringBuilder response = new StringBuilder();
-        String line;
-
         DefaultHttpClient httpclient = new DefaultHttpClient();
         httpclient.getCredentialsProvider().setCredentials(
                 new AuthScope(null, -1),
                 new UsernamePasswordCredentials(login, password)
         );
 
-        InputStream is = httpclient.execute(new HttpGet(buildStringUrl(method, args))).getEntity().getContent();
-        BufferedReader rdr = new BufferedReader(new InputStreamReader(is));
-
-        while((line = rdr.readLine()) != null)
-            response.append(line);
-
-        rdr.close();
-
-        return response.toString();
+        return EntityUtils.toString(httpclient.execute(new HttpGet(buildStringUrl(method, args))).getEntity());
     }
 
     protected String put(String method, Map<String, String> args, String data) throws IOException {
-        StringBuilder response = new StringBuilder();
-        String line;
 
         DefaultHttpClient httpclient = new DefaultHttpClient();
         httpclient.getCredentialsProvider().setCredentials(
@@ -75,15 +60,7 @@ public abstract class WebService<R, T> {
         HttpPost httpMethod = new HttpPost(buildStringUrl(method, args));
         httpMethod.setEntity(new StringEntity(data));
 
-        InputStream is = httpclient.execute(httpMethod).getEntity().getContent();
-        BufferedReader rdr = new BufferedReader(new InputStreamReader(is));
-
-        while((line = rdr.readLine()) != null)
-            response.append(line);
-
-        rdr.close();
-
-        return response.toString();
+        return EntityUtils.toString(httpclient.execute(httpMethod).getEntity());
     }
 
     protected String buildStringUrl(String method, Map<String, String> args) throws MalformedURLException {
