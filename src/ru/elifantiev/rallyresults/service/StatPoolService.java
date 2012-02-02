@@ -5,8 +5,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import ru.elifantiev.rallyresults.CompetitionActivity;
@@ -15,39 +15,43 @@ import ru.elifantiev.rallyresults.RallyWebService;
 import ru.elifantiev.rallyresults.infrastructure.RallySection;
 import ru.elifantiev.rallyresults.infrastructure.StatRecord;
 
-import java.io.IOException;
-import java.util.Queue;
-import java.util.Stack;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class StatPoolService extends Service {
+public class StatPoolService extends Service implements UploadingWorker.WorkerStatusChangeListener {
 
     private final int notifyId = 1;
     private RallyWebService svc = null;
-    //private WakeLockHolder lockHolder = null;
     private BlockingQueue<StatRecord> statQueue = null;
     private final IBinder binder = new StatPoolBinder();
     private OnStatRefreshListener listener = null;
     private UploadingWorker worker;
-    //private AtomicReference<Boolean> isUploading = null;
-    //private Timer timer;
-    /*private final TimerTask uploadTask = new TimerTask() {
-        @Override
-        public void run() {
-            synchronized (uploadLock) {
-                if (!isUploading.get()) {
-                    StatRecord record = getNextRecord();
-                    if (record != null) {
-                        new UploadTask().execute(record);
-                    }
-                }
+    private Handler uiThreadHandler;
+
+    @Override
+    public void onQueueLengthChanged(final int queueLength) {
+        uiThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (queueLength > 0)
+                    startForeground(notifyId, getNotification(queueLength));
+                else
+                    stopForeground(true);
             }
-        }
-    };*/
+        });
+
+    }
+
+    @Override
+    public void onDataReceived(final RallySection section) {
+        if(listener != null)
+            uiThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onStatRefresh(section);
+                }
+            });
+    }
 
     public class StatPoolBinder extends Binder {
         public StatPoolService getService() {
@@ -69,8 +73,9 @@ public class StatPoolService extends Service {
     }
 
     public void uploadStatRecord(StatRecord record) {
+        int size = statQueue.size();
         statQueue.add(record);
-        startForeground(notifyId, getNotification());
+        startForeground(notifyId, getNotification(size + 1));
     }
 
     public void setOnStatRefreshListener(OnStatRefreshListener listener) {
@@ -93,8 +98,15 @@ public class StatPoolService extends Service {
         if (statQueue == null)
             statQueue = new LinkedBlockingQueue<StatRecord>();
 
-        if(worker == null)
-            worker = new UploadingWorker(svc, statQueue);
+        if (uiThreadHandler == null)
+            uiThreadHandler = new Handler();
+
+        if (worker == null) {
+            worker = new UploadingWorker(this, svc, statQueue, this);
+            worker.start();
+        }
+
+
 
         super.onCreate();
     }
@@ -117,10 +129,10 @@ public class StatPoolService extends Service {
         Log.d("StatPoolService", "Service destroyed");
     }
 
-    private Notification getNotification() {
+    private Notification getNotification(int queueSize) {
         Notification retval = new Notification(android.R.drawable.stat_notify_sync, "Syncing...", System.currentTimeMillis());
         retval.flags = Notification.FLAG_FOREGROUND_SERVICE | Notification.FLAG_NO_CLEAR;
-        retval.number = statQueue.size();
+        retval.number = queueSize;
         retval.defaults = 0;
 
         Intent intent = new Intent(this, CompetitionActivity.class);
@@ -135,30 +147,4 @@ public class StatPoolService extends Service {
         return retval;
     }
 
-    /*private class UploadTask extends AsyncTask<StatRecord, Void, RallySection> {
-
-        @Override
-        protected RallySection doInBackground(StatRecord... statRecords) {
-            isUploading.set(true);
-            try {
-                return svc.updateStatRecord(statRecords[0]);
-            } catch (IOException e) {
-                uploadStatRecord(statRecords[0]);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(RallySection rallySection) {
-            isUploading.set(false);
-            lockHolder.release();
-            if (statQueue.size() > 0)
-                startForeground(notifyId, getNotification());
-            else
-                stopForeground(true);
-            if (listener != null && rallySection != null) {
-                listener.onStatRefresh(rallySection);
-            }
-        }
-    }*/
 }
