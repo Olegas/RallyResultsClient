@@ -28,7 +28,7 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
     private Spinner spnStats, spnNumber;
     private ProgressDialog progress;
     protected RallyWebService svc;
-    private TextView txtStartHour, txtStartMinute, txtStartSecond,
+    private TextView txtStartHour, txtStartMinute,
             txtFinishHour, txtFinishMinute, txtFinishSecond, txtFinishMSecond;
     LinkedHashMap<String, StatRecord> statHash = new LinkedHashMap<String, StatRecord>();
     StatPoolService boundService = null;
@@ -74,7 +74,6 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
         spnNumber = (Spinner) findViewById(R.id.spnNumber);
         txtStartHour = ((TextView) findViewById(R.id.startHour));
         txtStartMinute = ((TextView) findViewById(R.id.startMinute));
-        txtStartSecond = ((TextView) findViewById(R.id.startSecond));
         txtFinishHour = ((TextView) findViewById(R.id.finishHour));
         txtFinishMinute = ((TextView) findViewById(R.id.finishMinute));
         txtFinishSecond = ((TextView) findViewById(R.id.finishSecond));
@@ -94,7 +93,6 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
 
                 txtStartHour.setText(selected.getStartHour());
                 txtStartMinute.setText(selected.getStartMinute());
-                txtStartSecond.setText(selected.getStartSecond());
 
                 txtFinishHour.setText(selected.getFinishHour());
                 txtFinishMinute.setText(selected.getFinishMinute());
@@ -111,11 +109,10 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
                         competitionId,
                         sectionId);
 
-                isError = checkField(txtStartHour, 24);
+                isError = checkField(txtStartHour, 23);
                 isError |= checkField(txtStartMinute, 60);
-                isError |= checkField(txtStartSecond, 60);
 
-                isError |= checkField(txtFinishHour, 24);
+                isError |= checkField(txtFinishHour, 23);
                 isError |= checkField(txtFinishMinute, 60);
                 isError |= checkField(txtFinishSecond, 60);
 
@@ -124,7 +121,7 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
                         rec.setStart(
                                 txtStartHour.getText().toString(),
                                 txtStartMinute.getText().toString(),
-                                txtStartSecond.getText().toString());
+                                "0");
                         rec.setFinish(
                                 txtFinishHour.getText().toString(),
                                 txtFinishMinute.getText().toString(),
@@ -168,7 +165,6 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
         spnNumber.setSelection(0);
         txtStartHour.setText("");
         txtStartMinute.setText("");
-        txtStartSecond.setText("00");
         txtFinishHour.setText("");
         txtFinishMinute.setText("");
         txtFinishSecond.setText("");

@@ -58,26 +58,6 @@
                 android:layout_below="@id/startTimeCation"
                 android:layout_toRightOf="@id/colon1"/>
 
-        <TextView
-                android:id="@+id/colon2"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text=":"
-                android:layout_alignBaseline="@id/startHour"
-                android:layout_toRightOf="@id/startMinute"
-                android:layout_below="@id/startTimeCation"/>
-
-        <EditText
-                android:layout_height="wrap_content"
-                android:layout_width="60dp"
-                android:inputType="phone"
-                android:digits="0123456789"
-                android:maxLength="2"
-                android:id="@+id/startSecond"
-                android:singleLine="true"
-                android:layout_below="@id/startTimeCation"
-                android:layout_toRightOf="@id/colon2"/>
-
         <!-- =============================================== -->
 
         <TextView
