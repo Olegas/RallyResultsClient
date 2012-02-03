@@ -53,14 +53,6 @@ public class InputActivity extends Activity implements
         super.onStart();    //To change body of overridden methods use File | Settings | File Templates.
     }
 
-
-
-    /*@Override
-    protected void onPause() {
-        unbindService(this);
-        super.onPause();
-    }*/
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -168,6 +160,7 @@ public class InputActivity extends Activity implements
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         viewBounds.clear();
         viewBounds = null;
     }
