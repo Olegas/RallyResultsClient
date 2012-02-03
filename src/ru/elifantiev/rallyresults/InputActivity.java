@@ -8,11 +8,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.util.Pair;
+import android.view.KeyEvent;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.SimpleAdapter;
-import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.*;
 import ru.elifantiev.rallyresults.infrastructure.RallySection;
 import ru.elifantiev.rallyresults.infrastructure.StatRecord;
 import ru.elifantiev.rallyresults.service.StatPoolService;
@@ -22,16 +21,20 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class InputActivity extends Activity implements ServiceConnection, StatPoolService.OnStatRefreshListener {
+public class InputActivity extends Activity implements
+        ServiceConnection,
+        StatPoolService.OnStatRefreshListener,
+        View.OnKeyListener {
 
-    int competitionId, sectionId;
+    private int competitionId, sectionId;
     private Spinner spnStats, spnNumber;
     private ProgressDialog progress;
-    protected RallyWebService svc;
+    private RallyWebService svc;
     private TextView txtStartHour, txtStartMinute,
             txtFinishHour, txtFinishMinute, txtFinishSecond, txtFinishMSecond;
-    LinkedHashMap<String, StatRecord> statHash = new LinkedHashMap<String, StatRecord>();
-    StatPoolService boundService = null;
+    private LinkedHashMap<String, StatRecord> statHash = new LinkedHashMap<String, StatRecord>();
+    private StatPoolService boundService = null;
+    private HashMap<Integer, Pair<Integer, View>> viewBounds = new HashMap<Integer, Pair<Integer, View>>();
 
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
         boundService = ((StatPoolService.StatPoolBinder) iBinder).getService();
@@ -51,6 +54,8 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
                 Context.BIND_AUTO_CREATE);
         super.onStart();    //To change body of overridden methods use File | Settings | File Templates.
     }
+
+
 
     /*@Override
     protected void onPause() {
@@ -78,11 +83,23 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
         txtFinishMinute = ((TextView) findViewById(R.id.finishMinute));
         txtFinishSecond = ((TextView) findViewById(R.id.finishSecond));
         txtFinishMSecond = ((TextView) findViewById(R.id.finishMillisecond));
+        
+        viewBounds.put(R.id.startHour, new Pair<Integer, View>(23, txtStartMinute));
+        viewBounds.put(R.id.startMinute, new Pair<Integer, View>(59, txtFinishHour));
+        viewBounds.put(R.id.finishHour, new Pair<Integer, View>(23, txtFinishMinute));
+        viewBounds.put(R.id.finishMinute, new Pair<Integer, View>(59, txtFinishSecond));
+        viewBounds.put(R.id.finishSecond, new Pair<Integer, View>(59, txtFinishMSecond));
 
 
         svc = new RallyWebService(getString(R.string.wsRootUrl),
                 prefs.getString("login", ""),
                 prefs.getString("password", ""));
+
+        txtStartHour.setOnKeyListener(this);
+        txtStartMinute.setOnKeyListener(this);
+        txtFinishHour.setOnKeyListener(this);
+        txtFinishMinute.setOnKeyListener(this);
+        txtFinishSecond.setOnKeyListener(this);
 
         findViewById(R.id.btnEdit).setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -140,8 +157,14 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
         new AsyncLoadSection().execute();
     }
 
+    @Override
+    protected void onDestroy() {
+        viewBounds.clear();
+        viewBounds = null;
+    }
+
     private boolean checkField(TextView control, int maxVal) {
-        int value = 0;
+        int value;
         boolean isError = true;
         try {
             value = new Integer(control.getText().toString());
@@ -212,6 +235,41 @@ public class InputActivity extends Activity implements ServiceConnection, StatPo
         spnStats.setAdapter(
                 new SimpleAdapter(InputActivity.this, values, R.layout.statlistitem, keys, views)
         );
+    }
+
+    @Override
+    public boolean onKey(View view, int i, KeyEvent keyEvent) {
+        if(keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+            if(!keyEvent.isPrintingKey()) {
+                if(keyEvent.getKeyCode() == KeyEvent.KEYCODE_DEL) {
+                    ((EditText)view).setText("");
+                    return true;
+                }
+                return false;
+            }
+
+            EditText txt = (EditText) view;
+            String s = txt.getText().toString();
+            s += keyEvent.getNumber();
+            Integer val = Integer.valueOf(s);
+            Integer bound = viewBounds.get(view.getId()).first;
+            
+            if(val > bound)
+                return true;
+        }
+        
+        if(keyEvent.getAction() == KeyEvent.ACTION_UP) {
+            EditText txt = (EditText) view;
+            String s = txt.getText().toString();
+            if((keyEvent.isPrintingKey() && s.length() == 2) || keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                View v = viewBounds.get(view.getId()).second;
+                if(v != null)
+                    v.requestFocus();
+            }
+
+        }
+        
+        return false;
     }
 
     abstract public class AsyncGetStat<T> extends AsyncTask<T, Void, RallySection> {
