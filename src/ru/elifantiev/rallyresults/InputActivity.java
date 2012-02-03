@@ -16,10 +16,7 @@ import ru.elifantiev.rallyresults.infrastructure.RallySection;
 import ru.elifantiev.rallyresults.infrastructure.StatRecord;
 import ru.elifantiev.rallyresults.service.StatPoolService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class InputActivity extends Activity implements
         ServiceConnection,
@@ -185,10 +182,11 @@ public class InputActivity extends Activity implements
     }
 
     private void clearInputs() {
+        String h = String.valueOf(new Date().getHours());
         spnNumber.setSelection(0);
-        txtStartHour.setText("");
+        txtStartHour.setText(h);
         txtStartMinute.setText("");
-        txtFinishHour.setText("");
+        txtFinishHour.setText(h);
         txtFinishMinute.setText("");
         txtFinishSecond.setText("");
         txtFinishMSecond.setText("");
