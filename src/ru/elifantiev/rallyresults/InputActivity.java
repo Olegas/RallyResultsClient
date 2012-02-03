@@ -28,7 +28,8 @@ public class InputActivity extends Activity implements
     private ProgressDialog progress;
     private RallyWebService svc;
     private TextView txtStartHour, txtStartMinute,
-            txtFinishHour, txtFinishMinute, txtFinishSecond, txtFinishMSecond;
+            txtFinishHour, txtFinishMinute, txtFinishSecond, txtFinishMSecond,
+            txtIndicator;
     private LinkedHashMap<String, StatRecord> statHash = new LinkedHashMap<String, StatRecord>();
     private StatPoolService boundService = null;
     private HashMap<Integer, Pair<Integer, View>> viewBounds = new HashMap<Integer, Pair<Integer, View>>();
@@ -80,6 +81,7 @@ public class InputActivity extends Activity implements
         txtFinishMinute = ((TextView) findViewById(R.id.finishMinute));
         txtFinishSecond = ((TextView) findViewById(R.id.finishSecond));
         txtFinishMSecond = ((TextView) findViewById(R.id.finishMillisecond));
+        txtIndicator = (TextView)findViewById(R.id.txtIndicator);
         
         viewBounds.put(R.id.startHour, new Pair<Integer, View>(23, txtStartMinute));
         viewBounds.put(R.id.startMinute, new Pair<Integer, View>(59, txtFinishHour));
@@ -97,6 +99,7 @@ public class InputActivity extends Activity implements
         txtFinishHour.setOnKeyListener(this);
         txtFinishMinute.setOnKeyListener(this);
         txtFinishSecond.setOnKeyListener(this);
+        txtFinishMSecond.setOnKeyListener(this);
 
         findViewById(R.id.btnEdit).setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -112,6 +115,8 @@ public class InputActivity extends Activity implements
                 txtFinishMinute.setText(selected.getFinishMinute());
                 txtFinishSecond.setText(selected.getFinishSecond());
                 txtFinishMSecond.setText(selected.getFinishMSecond());
+
+                recalcIndicator();
             }
         });
 
@@ -123,12 +128,7 @@ public class InputActivity extends Activity implements
                         competitionId,
                         sectionId);
 
-                isError = checkField(txtStartHour, 23);
-                isError |= checkField(txtStartMinute, 60);
-
-                isError |= checkField(txtFinishHour, 23);
-                isError |= checkField(txtFinishMinute, 60);
-                isError |= checkField(txtFinishSecond, 60);
+                isError = isIncorrectInput(true);
 
                 if (!isError) {
                     try {
@@ -154,13 +154,25 @@ public class InputActivity extends Activity implements
         new AsyncLoadSection().execute();
     }
 
+    private boolean isIncorrectInput(boolean doMark) {
+        boolean isError;
+        isError = checkField(txtStartHour, 23, doMark);
+        isError |= checkField(txtStartMinute, 59, doMark);
+
+        isError |= checkField(txtFinishHour, 23, doMark);
+        isError |= checkField(txtFinishMinute, 59, doMark);
+        isError |= checkField(txtFinishSecond, 59, doMark);
+        isError |= checkField(txtFinishMSecond, 9, doMark);
+        return isError;
+    }
+
     @Override
     protected void onDestroy() {
         viewBounds.clear();
         viewBounds = null;
     }
 
-    private boolean checkField(TextView control, int maxVal) {
+    private boolean checkField(TextView control, int maxVal, boolean doMark) {
         int value;
         boolean isError = true;
         try {
@@ -169,7 +181,7 @@ public class InputActivity extends Activity implements
         } catch (NumberFormatException e) {
             // ignore
         }
-        markError(control, isError);
+        markError(control, isError && doMark);
         return isError;
     }
 
@@ -190,6 +202,7 @@ public class InputActivity extends Activity implements
         txtFinishMinute.setText("");
         txtFinishSecond.setText("");
         txtFinishMSecond.setText("");
+        txtIndicator.setText("--:--.-");
     }
 
     private void fillNumbers(RallySection rallySection) {
@@ -238,37 +251,86 @@ public class InputActivity extends Activity implements
     @Override
     public boolean onKey(View view, int i, KeyEvent keyEvent) {
         if(keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+
             if(!keyEvent.isPrintingKey()) {
                 if(keyEvent.getKeyCode() == KeyEvent.KEYCODE_DEL) {
                     ((EditText)view).setText("");
+                    recalcIndicator();
                     return true;
                 }
                 return false;
             }
 
+            if(view == txtFinishMSecond)
+                return false; // do not monitor down event for tneth-of-seconds
+
             EditText txt = (EditText) view;
             String s = txt.getText().toString();
             s += keyEvent.getNumber();
             Integer val = Integer.valueOf(s);
-            Integer bound = viewBounds.get(view.getId()).first;
-            
-            if(val > bound)
-                return true;
+            Pair<Integer, View> p = viewBounds.get(view.getId());
+            if(p != null) {
+                Integer bound = p.first;
+
+                if(val > bound)
+                    return true;
+            }
         }
         
         if(keyEvent.getAction() == KeyEvent.ACTION_UP) {
             EditText txt = (EditText) view;
             String s = txt.getText().toString();
             if((keyEvent.isPrintingKey() && s.length() == 2) || keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                View v = viewBounds.get(view.getId()).second;
-                if(v != null)
-                    v.requestFocus();
+                Pair<Integer, View> p = viewBounds.get(view.getId());
+                if(p != null) {
+                    View v = p.second;
+                    if(v != null) {
+                        v.requestFocus();
+                        recalcIndicator();
+                        return true;
+                    }
+                }
             }
+            
+            if(keyEvent.isPrintingKey())
+                recalcIndicator();
 
         }
         
         return false;
     }
+
+    private void recalcIndicator() {
+        if(!isIncorrectInput(false)) {
+            Date s = new Date(), f = new Date(), d;
+            s.setHours(intVal(txtStartHour));
+            s.setMinutes(intVal(txtStartMinute));
+            s.setSeconds(0);
+            f.setHours(intVal(txtFinishHour));
+            f.setMinutes(intVal(txtFinishMinute));
+            f.setSeconds(intVal(txtFinishSecond));
+            f.setTime(f.getTime() +intVal(txtFinishMSecond) * 10);
+            
+            if(f.before(s)) {
+                txtIndicator.setText("--:--.-");
+                return;
+            }
+           
+            d = new Date(f.getTime() - s.getTime());
+            long ms = (d.getTime() - d.getMinutes() * 60 * 1000 - d.getSeconds() * 1000) / 10;
+            txtIndicator.setText(String.format("%02d:%02d.%01d", d.getMinutes(), d.getSeconds(), ms));
+        } else
+            txtIndicator.setText("--:--.-");
+    }
+
+    private Integer intVal(TextView view) {
+        try {
+            return Integer.valueOf(view.getText().toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
 
     abstract public class AsyncGetStat<T> extends AsyncTask<T, Void, RallySection> {
 
