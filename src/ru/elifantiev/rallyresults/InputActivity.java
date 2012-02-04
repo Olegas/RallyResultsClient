@@ -7,11 +7,11 @@ import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.*;
+import ru.elifantiev.android.roboerrorreporter.RoboErrorReporter;
 import ru.elifantiev.rallyresults.infrastructure.RallySection;
 import ru.elifantiev.rallyresults.infrastructure.StatRecord;
 import ru.elifantiev.rallyresults.service.StatPoolService;
@@ -136,7 +136,7 @@ public class InputActivity extends Activity implements
 
                         boundService.uploadStatRecord(rec);
                     } catch (StatRecord.ParseException e) {
-                        Log.d("InputActivity", "Format parse: " + e.getMessage());
+                        RoboErrorReporter.reportError(InputActivity.this, e);
                     }
                     clearInputs();
                 }

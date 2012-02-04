@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import ru.elifantiev.android.roboerrorreporter.RoboErrorReporter;
 import ru.elifantiev.rallyresults.RallyWebService;
 import ru.elifantiev.rallyresults.infrastructure.RallySection;
 import ru.elifantiev.rallyresults.infrastructure.StatRecord;
@@ -34,6 +35,7 @@ public class UploadingWorker extends Thread {
             RallyWebService service,
             BlockingQueue<StatRecord> recordsQueue,
             WorkerStatusChangeListener listener) {
+        super("Uploader thread");
         queue = recordsQueue;
         this.service = service;
         this.listener = listener;
@@ -56,7 +58,7 @@ public class UploadingWorker extends Thread {
                         listener.onQueueLengthChanged(queue.size());
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    RoboErrorReporter.reportError(ctx, e);
                     if(rec != null) {
                         try {
                             queue.put(rec);
